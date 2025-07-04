@@ -1,0 +1,12 @@
+---
+- name: Deploy frontend container
+  hosts: frontend
+  become: true
+  roles:
+    - frontend
+
+- name: Deploy backend container
+  hosts: backend
+  become: true
+  roles:
+    - backend

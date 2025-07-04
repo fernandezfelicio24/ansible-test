@@ -1,0 +1,15 @@
+all:
+  children:
+    frontend:
+      hosts:
+        front:
+          ansible_host: 10.226.44.74
+          ansible_user: root
+          ansible_connection: ssh
+
+    backend:
+      hosts:
+        back:
+          ansible_host: 10.226.40.81
+          ansible_user: root
+          ansible_connection: ssh

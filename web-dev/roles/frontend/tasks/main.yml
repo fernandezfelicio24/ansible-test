@@ -1,0 +1,18 @@
+---
+# tasks file for frontend
+
+- name: Create index.html
+  copy:
+    dest: /tmp/index.html
+    content: "<h1>Welcome to the Frontend Page</h1>"
+
+- name: Run frontend Nginx container
+  docker_container:
+    name: frontend-web
+    image: nginx:alpine
+    state: started
+    restart_policy: always
+    ports:
+      - "8080:80"
+    volumes:
+      - /tmp/index.html:/usr/share/nginx/html/index.html:ro
