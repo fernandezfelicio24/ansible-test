@@ -1,0 +1,88 @@
+---
+#Write a playbook install docker on remote server,
+# and running “hello-world” images or a basic image.
+- name: Install Docker and run hello-world on CentOS 7.9 with Proxy
+  hosts: server-web
+  become: yes
+  vars:
+    http_proxy: "http://10.226.44.26:3128"
+    https_proxy: "http://10.226.44.26:3128"
+    no_proxy: "localhost,127.0.0.1"
+
+  tasks:
+
+  - name: Install dependencies
+    yum:
+      name: yum-utils
+      state: present
+
+  - name: Create Docker CE repository file manually
+    copy:
+      dest: /etc/yum.repos.d/docker-ce.repo
+      content: |
+        [docker-ce-stable]
+        name=Docker CE Stable - x86_64
+        baseurl=https://download.docker.com/linux/centos/7/x86_64/stable
+        enabled=1
+        gpgcheck=0
+
+  - name: Clean YUM cache
+    command: yum clean all
+
+  - name: Make YUM cache
+    command: yum makecache
+
+  - name: Test Docker repo availability
+    command: yum --disablerepo="*" --enablerepo="docker-ce-stable" list available
+    register: repo_check
+    ignore_errors: yes
+
+  - name: Show repo debug output
+    debug:
+      var: repo_check.stdout_lines
+
+  - name: Install Docker packages
+    yum:
+      name:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+        - docker-buildx-plugin
+        - docker-compose-plugin
+      state: present
+
+  - name: Start and enable Docker service
+    systemd:
+      name: docker
+      state: started
+      enabled: yes
+
+  - name: Create Docker service override directory
+    file:
+      path: /etc/systemd/system/docker.service.d
+      state: directory
+      mode: '0755'
+
+  - name: Set Docker HTTP/HTTPS proxy
+    copy:
+      dest: /etc/systemd/system/docker.service.d/http-proxy.conf
+      content: |
+        [Service]
+        Environment="HTTP_PROXY={{ http_proxy }}" "HTTPS_PROXY={{ https_proxy }}" "NO_PROXY={{ no_proxy }}"
+
+  - name: Reload systemd to apply Docker proxy config
+    command: systemctl daemon-reload
+
+  - name: Restart Docker to apply proxy
+    systemd:
+      name: docker
+      state: restarted
+
+  - name: Run hello-world Docker container
+    command: docker run hello-world
+    register: docker_hello_output
+    failed_when: "'Hello from Docker!' not in docker_hello_output.stdout"
+
+  - name: Show Docker hello-world output
+    debug:
+      var: docker_hello_output.stdout
