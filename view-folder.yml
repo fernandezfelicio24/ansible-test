@@ -1,0 +1,4 @@
+#Write an inventory, from control node run ansible ad-hoc command 
+#to view folder in /home/ folder at remote server.
+
+ansible all-servers -i host.ini -a "ls -l /home/"
