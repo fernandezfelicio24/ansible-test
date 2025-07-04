@@ -1,0 +1,18 @@
+---
+#Define a folder like: folder=”/home/user1”
+#Run playbook with vars file, create folder with path in var file on remote host.
+
+- name: Create folder on remote server
+  hosts: all
+  become: yes 
+  vars:
+    folder: "/var/home/user1"
+
+  tasks:
+    - name: Ensure the folder {{ folder }} exists
+      file:
+        path: "{{ folder }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0755'
