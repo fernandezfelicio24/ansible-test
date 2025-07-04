@@ -1,0 +1,2 @@
+#From controller node, run ping for test connection to remote host.
+ ansible all-servers -i host.ini -m ping
